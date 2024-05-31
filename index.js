@@ -42,6 +42,6 @@ app.use("/api/reply/", reply);
 app.use("/api/otp/", OTP);
 
 app.listen(PORT, () => {
-  console.log("app is listening on port 8000");
+  console.log("app is listening on port" + " " + PORT);
   connect();
 });
