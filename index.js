@@ -12,7 +12,7 @@ import cors from "cors";
 
 const app = express();
 
-const PORT = process.env;
+const PORT = process.env.PORT || 8000;
 
 //middlewares
 app.use(express.json());
@@ -41,7 +41,7 @@ app.use("/api/comment/", comment);
 app.use("/api/reply/", reply);
 app.use("/api/otp/", OTP);
 
-app.listen("8000", () => {
+app.listen(PORT, () => {
   console.log("app is listening on port 8000");
   connect();
 });
