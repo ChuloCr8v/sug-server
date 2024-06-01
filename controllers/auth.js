@@ -79,15 +79,20 @@ export const verifyAccount = async (req, res, next) => {
     );
     res.status(200).json("Account verification successfull");
 
+    const baseUrl = process.env.BASE_URL;
+
     await sendMail({
       receiver: organization.companyEmail,
       subject: "Account Verification Successful",
-      message: `
+      message:
+        `
         <p>Hello ${organization.companyName},</p>
         <p>Your account has been successfully verified. Click on the link below to continue to login.</p>
         <a 
           style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;" 
-          href="http://localhost:5173/login/admin"
+          href=`(baseUrl) /
+        login /
+        admin`
         >
          Login
         </a>
