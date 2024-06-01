@@ -189,7 +189,8 @@ export const employeeSignup = async (req, res, next) => {
     await sendMail({
       receiver: saveEmployee.email,
       subject: `Invitation to Suggbox from ${company.companyName}`,
-      message: `
+      message:
+        `
         <p>Hello ${saveEmployee.firstName},</p>
         <p>You have been invited by ${company.companyName} to Suggbox. A digital suggestions app for organizations.</p>
         <p style="display: block">Your password is <i style="color: blue; font: bold"> ${password}.</i></p> 
@@ -199,7 +200,9 @@ export const employeeSignup = async (req, res, next) => {
 
         <a 
           style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;" 
-          href="http://localhost:5173/login/employee"
+          href=`(process.env.BASE_URL) /
+        login /
+        employee`
         >
          Login
         </a>

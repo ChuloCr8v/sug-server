@@ -4,35 +4,25 @@ import CompanyModel from "../models/CompanyModel.js";
 import SuggestionModel from "../models/SuggestionModel.js";
 
 export const addComment = async (req, res, next) => {
-  const userId = req.employeeId || req.user;
   const suggestionId = req.params.id;
+  const userId = req.user;
 
   const getEmployee = await EmployeeModel.findById(userId);
   const getCompany = await CompanyModel.findById(userId);
 
   try {
-    const user = req.employeeId ? getEmployee : getCompany;
-    const {
-      comments,
-      upvotes,
-      password,
-      company,
-      suggestions,
-      downVotes,
-      replies,
-      ...updatedUser
-    } = user._doc;
-
+    console.log(req.user);
     const newComment = new CommentModel({
-      userId: user.id,
-      user: updatedUser,
+      userId: userId,
       suggestionId: suggestionId,
       ...req.body,
     });
-    const addComment = await newComment.save();
+
+    await newComment.save();
     await SuggestionModel.findByIdAndUpdate(req.params.id, {
       $push: { comments: newComment._id },
     });
+
     await EmployeeModel.findByIdAndUpdate(req.employeeId, {
       $push: { comments: newComment._id },
     });

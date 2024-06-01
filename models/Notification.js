@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const NotificationSchema = new mongoose.Schema({
+  newSuggestionForOrganization: {
+    type: Boolean,
+    default: true,
+  },
   newSuggestionSubmitted: {
     type: Boolean,
     default: true,

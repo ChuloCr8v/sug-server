@@ -6,6 +6,7 @@ import { sendMail } from "../utils/sendEmail.js";
 export const newSuggestion = async (req, res, next) => {
   const companyId = req.params.id;
   const userId = req.employeeId || req.user;
+  console.log(userId);
   try {
     const user = await EmployeeModel.findById(req.employeeId);
 
@@ -16,9 +17,11 @@ export const newSuggestion = async (req, res, next) => {
     });
 
     const addSuggestion = await newSuggestion.save();
+    const company = await CompanyModel.findById(companyId);
     await CompanyModel.findByIdAndUpdate(req.params.id, {
       $push: { suggestions: addSuggestion._id },
     });
+
     await EmployeeModel.findByIdAndUpdate(req.employeeId, {
       $push: { suggestions: addSuggestion._id },
     });
@@ -39,6 +42,30 @@ export const newSuggestion = async (req, res, next) => {
       </div>`,
       });
     }
+
+    const allEmployees = await EmployeeModel.find({ companyId: req.params.id });
+
+    const suggestionLink = `${process.env.BASE_URL}/suggestion/${newSuggestion._id}`;
+    console.log("user id:" + " " + userId);
+    allEmployees.forEach((employee) => {
+      if (
+        employee.notifications.newSuggestionForOrganization &&
+        employee._id !== userId
+      ) {
+        sendMail({
+          receiver: employee.email,
+          subject: `New Suggestion For Your Organization ${company.companyName}`,
+          message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <p>Hello ${employee.firstName},</p>
+          <p>A new suggestion, <i style="color: blue; font-weight: bold">${req.body.title}</i> has been added to your organization's Suggbox.
+          </p>
+          <p>Check it out here.<a href=${suggestionLink} style="color: blue; font-weight: bold">${req.body.title}</a>.
+          </p>
+          <p>Thank you.</p>
+        </div>`,
+        });
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -75,7 +102,7 @@ export const getAllSuggestions = async (req, res, next) => {
 export const editSuggestion = async (req, res, next) => {
   try {
     const suggestion = await SuggestionModel.findById({ _id: req.params.id });
-    if (suggestion.userId !== req.employeeId)
+    if (suggestion.userId !== req.user)
       return res.status(401).json("You can only edit your suggestion!");
     const timeElasped =
       Math.floor(
