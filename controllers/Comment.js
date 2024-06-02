@@ -2,12 +2,17 @@ import CommentModel from "../models/CommentModel.js";
 import EmployeeModel from "../models/EmployeeModel.js";
 import CompanyModel from "../models/CompanyModel.js";
 import SuggestionModel from "../models/SuggestionModel.js";
+import { sendMail } from "../utils/sendEmail.js";
 
 export const addComment = async (req, res, next) => {
   const suggestionId = req.params.id;
   const userId = req.user;
 
-  const getEmployee = await EmployeeModel.findById(userId);
+  const suggestion = await SuggestionModel.findById(req.params.id);
+
+  const suggestionOwner = await EmployeeModel.findById(suggestion.userId);
+  const commentOwner = await EmployeeModel.findById(req.user);
+  console.log(commentOwner);
   const getCompany = await CompanyModel.findById(userId);
 
   try {
@@ -29,6 +34,19 @@ export const addComment = async (req, res, next) => {
     res.status(200).json({
       message: "Comment added successfully",
       data: newComment,
+    });
+    sendMail({
+      receiver: suggestionOwner.email,
+      subject: "New comment on your suggestion.",
+      message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <p>Hello ${suggestionOwner.firstName},</p>
+      <p>${
+        commentOwner.firstName + " " + commentOwner.lastName
+      } commented on your suggestion, <i style="color: blue; font-weight: bold">${
+        suggestion.title
+      }</i>.</p>
+      <p>Thank you.</p>
+    </div>`,
     });
   } catch (error) {
     next(error);
