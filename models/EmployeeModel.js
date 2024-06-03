@@ -40,7 +40,7 @@ const EmployeeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    img: {
+    profilePicture: {
       type: String,
     },
     suggestions: {

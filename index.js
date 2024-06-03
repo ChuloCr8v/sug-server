@@ -7,6 +7,7 @@ import suggestion from "./routes/suggestion.js";
 import comment from "./routes/comment.js";
 import reply from "./routes/reply.js";
 import OTP from "./routes/otp.js";
+import imageUploads from "./routes/imageUploads.js";
 import mongoose from "mongoose";
 import cors from "cors";
 
@@ -40,6 +41,7 @@ app.use("/api/suggestion/", suggestion);
 app.use("/api/comment/", comment);
 app.use("/api/reply/", reply);
 app.use("/api/otp/", OTP);
+app.use("/api/uploads/", imageUploads);
 
 app.listen(PORT, () => {
   console.log("app is listening on port" + " " + PORT);
