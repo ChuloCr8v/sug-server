@@ -35,6 +35,9 @@ const SuggestionSchema = new mongoose.Schema(
     downVotes: {
       type: [],
     },
+    attachments: {
+      type: [],
+    },
   },
   { timestamps: true }
 );

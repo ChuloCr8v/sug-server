@@ -1,5 +1,5 @@
 import EmployeeModel from "../models/EmployeeModel.js";
-import uploadImage from "../utils/uploadImage.js ";
+import cloudiaryMiddeware from "../utils/cloudinaryMiddleware.js";
 
 export const uploadProfilePicture = async (req, res, next) => {
   try {
@@ -9,7 +9,11 @@ export const uploadProfilePicture = async (req, res, next) => {
     if (!employee)
       return res.status(404).json({ message: "Employee not found" });
 
-    const response = await uploadImage(req.body.profileImageUrl);
+    const response = await cloudiaryMiddeware(
+      req.body.profileImageUrl,
+      employee.firstName + " " + employee.lastName,
+      "profile_pictures"
+    );
 
     await EmployeeModel.findByIdAndUpdate(
       id,

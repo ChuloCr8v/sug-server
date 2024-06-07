@@ -6,7 +6,11 @@ import { sendMail } from "../utils/sendEmail.js";
 export const newSuggestion = async (req, res, next) => {
   const companyId = req.params.id;
   const userId = req.employeeId || req.user;
-  console.log(userId);
+
+  if (req.body.attachments) {
+    console.log(req.body.attachments);
+  }
+
   try {
     const user = await EmployeeModel.findById(req.employeeId);
 
@@ -31,41 +35,41 @@ export const newSuggestion = async (req, res, next) => {
       data: newSuggestion,
     });
 
-    if (user.notifications.newSuggestionSubmitted) {
-      sendMail({
-        receiver: user.email,
-        subject: "Suggestion Added Successfully",
-        message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <p>Hello ${user.firstName},</p>
-        <p>Your suggestion <i style="color: blue; font-weight: bold">${req.body.title}</i> has been submitted successfully.</p>
-        <p>Thank you.</p>
-      </div>`,
-      });
-    }
+    // if (user.notifications.newSuggestionSubmitted) {
+    //   sendMail({
+    //     receiver: user.email,
+    //     subject: "Suggestion Added Successfully",
+    //     message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+    //     <p>Hello ${user.firstName},</p>
+    //     <p>Your suggestion <i style="color: blue; font-weight: bold">${req.body.title}</i> has been submitted successfully.</p>
+    //     <p>Thank you.</p>
+    //   </div>`,
+    //   });
+    // }
 
     const allEmployees = await EmployeeModel.find({ companyId: req.params.id });
 
     const suggestionLink = `${process.env.BASE_URL}/suggestion/${newSuggestion._id}`;
     console.log("user id:" + " " + userId);
-    allEmployees.forEach((employee) => {
-      if (
-        employee.notifications.newSuggestionForOrganization &&
-        employee._id !== userId
-      ) {
-        sendMail({
-          receiver: employee.email,
-          subject: `New Suggestion For Your Organization ${company.companyName}`,
-          message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <p>Hello ${employee.firstName},</p>
-          <p>A new suggestion, <i style="color: blue; font-weight: bold">${req.body.title}</i> has been added to your organization's Suggbox.
-          </p>
-          <p>Check it out here.<a href=${suggestionLink} style="color: blue; font-weight: bold">${req.body.title}</a>.
-          </p>
-          <p>Thank you.</p>
-        </div>`,
-        });
-      }
-    });
+    // allEmployees.forEach((employee) => {
+    //   if (
+    //     employee.notifications.newSuggestionForOrganization &&
+    //     employee._id !== userId
+    //   ) {
+    //     sendMail({
+    //       receiver: employee.email,
+    //       subject: `New Suggestion For Your Organization ${company.companyName}`,
+    //       message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+    //       <p>Hello ${employee.firstName},</p>
+    //       <p>A new suggestion, <i style="color: blue; font-weight: bold">${req.body.title}</i> has been added to your organization's Suggbox.
+    //       </p>
+    //       <p>Check it out here.<a href=${suggestionLink} style="color: blue; font-weight: bold">${req.body.title}</a>.
+    //       </p>
+    //       <p>Thank you.</p>
+    //     </div>`,
+    //     });
+    //   }
+    // });
   } catch (error) {
     next(error);
   }
@@ -222,10 +226,10 @@ export const deleteSuggestion = async (req, res, next) => {
       return res.status(403).json("You can't delete an approved suggestion.");
     }
 
-    if (suggestion.companyId !== req.user)
-      return res
-        .status(401)
-        .json("You can only delete your suggestions for your company");
+    // if (suggestion.companyId !== req.user)
+    //   return res
+    //     .status(401)
+    //     .json("You can only delete your suggestions for your company");
 
     const user = await EmployeeModel.findById(suggestion.userId);
     await CompanyModel.findByIdAndUpdate(suggestion.companyId, {
