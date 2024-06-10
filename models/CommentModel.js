@@ -6,8 +6,9 @@ const CommentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    user: {
-      type: {},
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
     comment: {
       type: String,

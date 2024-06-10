@@ -12,8 +12,6 @@ export const addComment = async (req, res, next) => {
 
   const suggestionOwner = await EmployeeModel.findById(suggestion.userId);
   const commentOwner = await EmployeeModel.findById(req.user);
-  console.log(commentOwner);
-  const getCompany = await CompanyModel.findById(userId);
 
   try {
     console.log(req.user);
