@@ -33,7 +33,10 @@ export const addComment = async (req, res, next) => {
       data: newComment,
     });
 
-    if (suggestionOwner._id !== suggestion.userId) {
+    if (
+      suggestionOwner._id.toHexString() !== req.user ||
+      suggestionOwner.notifications.newCommentOnSuggestion
+    ) {
       sendMail({
         receiver: suggestionOwner.email,
         subject: "New comment on your suggestion.",
