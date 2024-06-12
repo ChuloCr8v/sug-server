@@ -14,7 +14,6 @@ export const addComment = async (req, res, next) => {
   const commentOwner = await EmployeeModel.findById(req.user);
 
   try {
-    console.log(req.user);
     const newComment = new CommentModel({
       userId: userId,
       suggestionId: suggestionId,
@@ -33,19 +32,22 @@ export const addComment = async (req, res, next) => {
       message: "Comment added successfully",
       data: newComment,
     });
-    sendMail({
-      receiver: suggestionOwner.email,
-      subject: "New comment on your suggestion.",
-      message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+
+    if (suggestionOwner._id !== suggestion.userId) {
+      sendMail({
+        receiver: suggestionOwner.email,
+        subject: "New comment on your suggestion.",
+        message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
       <p>Hello ${suggestionOwner.firstName},</p>
       <p>${
         commentOwner.firstName + " " + commentOwner.lastName
       } commented on your suggestion, <i style="color: blue; font-weight: bold">${
-        suggestion.title
-      }</i>.</p>
+          suggestion.title
+        }</i>.</p>
       <p>Thank you.</p>
     </div>`,
-    });
+      });
+    }
   } catch (error) {
     next(error);
   }
