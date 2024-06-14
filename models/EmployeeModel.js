@@ -32,9 +32,9 @@ const EmployeeSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    adminRole: {
-      type: String,
-      default: "staff",
+    isModerator: {
+      type: Boolean,
+      default: false,
     },
     defaultAnonymousSuggestion: {
       type: Boolean,

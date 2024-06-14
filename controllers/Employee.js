@@ -21,27 +21,27 @@ export const editEmployee = async (req, res, next) => {
   }
 };
 
-// export const emmployeeAdminRole = async (req, res, next) => {
-//   try {
-//     const employee = await EmployeeModel.findOne({ _id: req.params.id });
-//     if (!employee) return res.status(401).json("Employee does not exist.");
-//     if (employee.companyId.toString(16) !== req.user)
-//       return res.status(401).json("You can only update your employee role.");
-//     await EmployeeModel.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         $set: req.body,
-//       },
-//       { new: true }
-//     );
-//     // await CompanyModel.findByIdAndUpdate(req.user, {
-//     //   $push: { employees: { _id: employee._id } },
-//     // });
-//     res.status(200).json("Employee administrative role updated successfully");
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+export const updateEmployeeRole = async (req, res, next) => {
+  try {
+    const employee = await EmployeeModel.findOne({ _id: req.params.id });
+    if (!employee) return res.status(401).json("Employee does not exist.");
+    if (employee.companyId.toString(16) !== req.user)
+      return res.status(401).json("You can only update your employee role.");
+
+    const currentRole = employee.isModerator ? false : true;
+
+    await EmployeeModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: { isModerator: currentRole },
+      },
+      { new: true }
+    );
+    res.status(200).json("Employee administrative role updated successfully");
+  } catch (error) {
+    next(error);
+  }
+};
 
 // export const emmployeeDepartment = async (req, res, next) => {
 //   try {
