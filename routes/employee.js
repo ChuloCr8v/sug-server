@@ -4,6 +4,7 @@ import {
   editEmployee,
   getEmployee,
   getEmployees,
+  sendEmailToEmployee,
   updateEmployeeRole,
 } from "../controllers/Employee.js";
 import { verifyAdminToken } from "../verifyAdminToken.js";
@@ -15,5 +16,6 @@ router.put("/:id", verifyAdminToken, disableEmployee);
 router.put("/update-role/:id", verifyAdminToken, updateEmployeeRole);
 router.get("/all", getEmployees);
 router.get("/:id", getEmployee);
+router.post("/send-email", verifyAdminToken, sendEmailToEmployee);
 
 export default router;

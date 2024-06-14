@@ -1,5 +1,6 @@
 import CompanyModel from "../models/CompanyModel.js";
 import EmployeeModel from "../models/EmployeeModel.js";
+import { sendMail } from "../utils/sendEmail.js";
 
 export const editEmployee = async (req, res, next) => {
   try {
@@ -101,6 +102,36 @@ export const getEmployee = async (req, res, next) => {
   try {
     const employee = await EmployeeModel.findById(req.params.id);
     res.status(200).json(employee);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendEmailToEmployee = async (req, res, next) => {
+  const { emailAddress, subject, email } = req.body;
+
+  try {
+    const employee = await EmployeeModel.find({ email: emailAddress });
+
+    if (!employee) {
+      res.status(404).json("Error, employee does not exist");
+      return;
+    }
+
+    if (!email) {
+      res.status(404).json("Error, Please include email body and try again");
+      return;
+    }
+
+    await sendMail({
+      receiver: emailAddress,
+      subject: `${subject ? subject : "Email from your ADMIN on sugbox"}`,
+      message: `
+        <p>${email}</p>
+      `,
+    });
+
+    res.status(200).json("email sent successfully");
   } catch (error) {
     next(error);
   }
