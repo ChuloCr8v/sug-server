@@ -18,8 +18,8 @@ const router = express.Router();
 
 router.post("/new-suggestion/:id", verifyEmployeeToken, newSuggestion);
 router.put("/edit-suggestion/:id", verifyToken, editSuggestion);
-router.put("/approve-suggestion/:id", verifyAdminToken, approveSuggestion);
-router.put("/reject-suggestion/:id", verifyAdminToken, rejectSuggestion);
+router.put("/approve-suggestion/:id", verifyToken, approveSuggestion);
+router.put("/reject-suggestion/:id", verifyToken, rejectSuggestion);
 router.delete("/:id", verifyToken, deleteSuggestion);
 router.put("/upvote/:id", verifyToken, upVoteSuggestion);
 router.put("/downvote/:id", verifyEmployeeToken, downVoteSuggestion);

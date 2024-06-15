@@ -137,31 +137,34 @@ export const approveSuggestion = async (req, res, next) => {
   try {
     const suggestion = await SuggestionModel.findById(req.params.id);
     const employee = await EmployeeModel.findById(suggestion.userId);
-    if (suggestion.companyId !== req.user)
-      return res.status(401).json("You are not authorized");
-    const approve = await SuggestionModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          status: "approved",
-        },
-      },
-      { new: true }
-    );
-    res.status(200).json({
-      msg: "Suggestion approved successfully",
-      approve,
-    });
 
-    sendMail({
-      receiver: employee.email,
-      subject: "Your suggestion has been approved!",
-      message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-      <p>Hello ${employee.firstName},</p>
-      <p>Congratulations. Your suggestion <i style="color: blue; font-weight: bold">${suggestion.title}</i> has been Approved.</p>
-      <p>Thank you.</p>
-    </div>`,
-    });
+    if (suggestion.companyId === req.user || verifyModerator.isModerator) {
+      const approve = await SuggestionModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            status: "approved",
+          },
+        },
+        { new: true }
+      );
+      res.status(200).json({
+        msg: "Suggestion approved successfully",
+        approve,
+      });
+
+      sendMail({
+        receiver: employee.email,
+        subject: "Your suggestion has been approved!",
+        message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <p>Hello ${employee.firstName},</p>
+        <p>Congratulations. Your suggestion <i style="color: blue; font-weight: bold">${suggestion.title}</i> has been Approved.</p>
+        <p>Thank you.</p>
+      </div>`,
+      });
+    } else {
+      return res.status(401).json("You are not authorized");
+    }
   } catch (error) {
     next(error);
   }
@@ -172,21 +175,25 @@ export const approveSuggestion = async (req, res, next) => {
 export const rejectSuggestion = async (req, res, next) => {
   try {
     const suggestion = await SuggestionModel.findById(req.params.id);
-    if (suggestion.companyId !== req.user)
-      return res.status(401).json("You are not authorized");
-    const approve = await SuggestionModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          status: "rejected",
+    const verifyModerator = await EmployeeModel.findById(req.user);
+
+    if (suggestion.companyId === req.user || verifyModerator.isModerator) {
+      const approve = await SuggestionModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            status: "rejected",
+          },
         },
-      },
-      { new: true }
-    );
-    res.status(200).json({
-      msg: "Suggestion rejected successfully",
-      approve,
-    });
+        { new: true }
+      );
+      res.status(200).json({
+        msg: "Suggestion rejected successfully",
+        approve,
+      });
+    } else {
+      return res.status(401).json("You are not authorized");
+    }
   } catch (error) {
     next(error);
   }
