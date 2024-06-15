@@ -1,17 +1,16 @@
 import express from "express";
 import {
-  deleteSuggestion,
-  editSuggestion,
-  newSuggestion,
-  upVoteSuggestion,
-  downVoteSuggestion,
-  getSuggestion,
-  getAllSuggestions,
   approveSuggestion,
+  deleteSuggestion,
+  downVoteSuggestion,
+  editSuggestion,
+  getAllSuggestions,
+  getSuggestion,
+  newSuggestion,
   rejectSuggestion,
+  upVoteSuggestion,
 } from "../controllers/Suggestion.js";
 import { verifyEmployeeToken } from "../verifyEmployeeToken.js";
-import { verifyAdminToken } from "../verifyAdminToken.js";
 import { verifyToken } from "../verifyToken.js";
 
 const router = express.Router();

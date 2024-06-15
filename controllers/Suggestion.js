@@ -138,6 +138,8 @@ export const approveSuggestion = async (req, res, next) => {
     const suggestion = await SuggestionModel.findById(req.params.id);
     const employee = await EmployeeModel.findById(suggestion.userId);
 
+    const verifyModerator = await EmployeeModel.findById(req.user);
+
     if (suggestion.companyId === req.user || verifyModerator.isModerator) {
       const approve = await SuggestionModel.findByIdAndUpdate(
         req.params.id,
@@ -175,6 +177,8 @@ export const approveSuggestion = async (req, res, next) => {
 export const rejectSuggestion = async (req, res, next) => {
   try {
     const suggestion = await SuggestionModel.findById(req.params.id);
+    const employee = await EmployeeModel.findById(suggestion.userId);
+
     const verifyModerator = await EmployeeModel.findById(req.user);
 
     if (suggestion.companyId === req.user || verifyModerator.isModerator) {
@@ -190,6 +194,15 @@ export const rejectSuggestion = async (req, res, next) => {
       res.status(200).json({
         msg: "Suggestion rejected successfully",
         approve,
+      });
+      sendMail({
+        receiver: employee.email,
+        subject: "Update on your suggestion!",
+        message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <p>Hello ${employee.firstName},</p>
+        <p>Unfortunately. Your suggestion <i style="color: blue; font-weight: bold">${suggestion.title}</i> didn't make the fold, keep trying, sure people still want to hear the lot that you have to say.</p>
+        <p>Thank you.</p>
+      </div>`,
       });
     } else {
       return res.status(401).json("You are not authorized");
