@@ -19,7 +19,7 @@ const CompanySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    img: {
+    profilePicture: {
       type: String,
     },
     employees: {
