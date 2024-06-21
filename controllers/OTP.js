@@ -1,3 +1,4 @@
+import CompanyModel from "../models/CompanyModel.js";
 import EmployeeModel from "../models/EmployeeModel.js";
 import OTPModel from "../models/OTPModel.js";
 import { sendMail } from "../utils/sendEmail.js";
@@ -6,9 +7,17 @@ import { sendMail } from "../utils/sendEmail.js";
 
 export const generateOTP = async (req, res, next) => {
   try {
-    const employee = await EmployeeModel.findById(req.params.id);
-    if (!employee) {
+    const { isAdmin, action } = req.body;
+    const { id } = req.params;
+
+    const employee = await EmployeeModel.findById(id);
+    const organization = await CompanyModel.findById(id);
+
+    if (!isAdmin && !employee) {
       return res.status(404).json("Employee doesn't exist.");
+    }
+    if (isAdmin && !organization) {
+      return res.status(404).json("Organization doesn't exist.");
     }
 
     const verifyExistingOTPs = await OTPModel.find({ userId: req.params.id });
@@ -27,9 +36,11 @@ export const generateOTP = async (req, res, next) => {
     const saveOTP = await OTP.save();
 
     await sendMail({
-      receiver: "nkematu5@gmail.com",
-      subject: "Reset Password OTP",
-      message: `Hello ${employee.firstName}, use this OTP to change your password. <span style="background: green; color: white; padding; 4px; border-radius: 10px"> ${newOTP}`,
+      receiver: isAdmin ? organization.companyEmail : employee.email,
+      subject: "Authentication OTP",
+      message: `Hello ${
+        isAdmin ? organization.companyName : employee.firstName
+      }, use this OTP to ${action}. <span style="background: green; color: white; padding; 4px; border-radius: 10px"> ${newOTP}`,
     });
 
     res
@@ -43,27 +54,30 @@ export const generateOTP = async (req, res, next) => {
 //Verify OTP
 export const verifyOTP = async (req, res, next) => {
   try {
-    const employee = await EmployeeModel.findById(req.params.id);
-    if (!employee) {
-      return res.status(200).json("Employee doesn't exist.");
+    const { isAdmin, OTP: _otp } = req.body;
+    const { id } = req.params;
+
+    const model = isAdmin ? CompanyModel : EmployeeModel;
+    const user = await model.findById(id);
+
+    if (!user) {
+      return res.status(404).json("This account does not exist.");
     }
-    const OTP = await OTPModel.findOne({ userId: req.params.id });
+
+    const OTP = await OTPModel.findOne({ userId: id });
     if (!OTP) {
       return res
         .status(404)
-        .json("No OTP has beeen generated for this user yet.");
+        .json("No OTP has beeen generated for this account yet.");
     }
 
-    console.log(req.body);
-    console.log(OTP.OTP);
-
-    if (OTP.OTP !== req.body.OTP) {
+    if (OTP.OTP !== _otp) {
       return res.status(403).json("Incorrect OTP.");
     }
 
     if (OTP.expireAt < new Date().getTime()) {
       await OTPModel.findByIdAndDelete(OTP._id);
-      return res.status(401).json("OTP has expired.");
+      return res.status(401).json("This OTP has expired.");
     }
 
     await OTPModel.findByIdAndDelete(OTP._id);

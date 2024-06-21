@@ -5,7 +5,7 @@ import {
   employeeLogin,
   employeeSignup,
   forgotPassword,
-  resetEmployeeEmail,
+  resetEmail,
   resetEmployeePassword,
   verifyEmployeePasswordMatch,
   verifyAccount,
@@ -26,7 +26,7 @@ router.put(
   verifyEmployeePasswordMatch
 );
 router.put("/auth/employee/forgot-password/:email", forgotPassword);
-router.put("/auth/employee/reset-email/:id", resetEmployeeEmail);
+router.put("/auth/reset-email/:id", resetEmail);
 router.put("/auth/verify-organization/:token/:id", verifyAccount);
 
 export default router;

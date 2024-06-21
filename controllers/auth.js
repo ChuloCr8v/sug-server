@@ -393,25 +393,45 @@ export const verifyEmployeePasswordMatch = async (req, res, next) => {
   }
 };
 
-export const resetEmployeeEmail = async (req, res, next) => {
+//RESET EMAIL
+
+export const resetEmail = async (req, res, next) => {
   try {
-    const employee = await EmployeeModel.findById(req.params.id);
-    if (!employee) {
-      return res.status(404).json("Employee does not exist");
+    const { isAdmin, email } = req.body;
+    const { id } = req.params;
+
+    const Model = isAdmin ? CompanyModel : EmployeeModel;
+    const currentEmail = isAdmin ? "companyEmail" : "email";
+
+    const verifyEmailDoesNotExist = await Model.findOne({
+      currentEmail: email,
+    });
+
+    const user = await Model.findById(id);
+
+    if (user[currentEmail] === email) {
+      return res
+        .status(405)
+        .json("You cannot reuse your current email. Enter a new one.");
     }
-    await EmployeeModel.findByIdAndUpdate(
-      req.params.id,
+
+    if (verifyEmailDoesNotExist) {
+      return res.status(406).json("This email already exists, try a new one.");
+    }
+
+    await Model.findByIdAndUpdate(
+      id,
       {
-        $set: { email: req.body.email },
+        [currentEmail]: email,
       },
       { new: true }
     );
 
     sendMail({
-      receiver: employee.email,
+      receiver: user[currentEmail],
       subject: "Email Update Successful",
       message: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <p>Hello ${employee.firstName},</p>
+        <p>Hello ${isAdmin ? user.companyName : user.firstName},</p>
         <p>Your email has been successfully updated.</p>
         <p>Thank you.</p>
       </div>`,

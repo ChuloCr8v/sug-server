@@ -9,7 +9,7 @@ import { verifyAdminToken } from "../verifyAdminToken.js";
 
 const router = express.Router();
 
-router.put("/edit-company/:id", verifyAdminToken, editCompany);
+router.put("/edit-organization/:id", verifyAdminToken, editCompany);
 router.delete("/:id", verifyAdminToken, deleteCompany);
 router.get("/all", getCompanies);
 router.get("/:id", getCompany);

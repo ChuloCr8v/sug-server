@@ -1,10 +1,10 @@
 import express from "express";
 import { generateOTP, verifyOTP } from "../controllers/OTP.js";
-import { verifyEmployeeToken } from "../verifyEmployeeToken.js";
+import { verifyToken } from "../verifyToken.js";
 
 const router = express.Router();
 
-router.post("/generate-otp/:id", verifyEmployeeToken, generateOTP);
-router.put("/verify-otp/:id", verifyEmployeeToken, verifyOTP);
+router.post("/generate-otp/:id", verifyToken, generateOTP);
+router.put("/verify-otp/:id", verifyToken, verifyOTP);
 
 export default router;
