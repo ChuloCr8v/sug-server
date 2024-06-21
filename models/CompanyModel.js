@@ -1,4 +1,5 @@
 import mongoose, { Mongoose } from "mongoose";
+import AdminNotificationSchema from "./AdminNotification.js";
 
 const CompanySchema = new mongoose.Schema(
   {
@@ -37,6 +38,10 @@ const CompanySchema = new mongoose.Schema(
     },
     rejectedSuggestions: {
       type: [],
+    },
+    notifications: {
+      type: AdminNotificationSchema,
+      default: () => ({}),
     },
   },
   { timestamps: true }

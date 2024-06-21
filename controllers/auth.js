@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken";
 import TokenModel from "../models/TokenModel.js";
 import { sendMail } from "../utils/sendEmail.js";
 
+const baseUrl = process.env.BASE_URL;
+
 //Company Signup
 export const companySignup = async (req, res, next) => {
   try {
@@ -40,8 +42,8 @@ export const companySignup = async (req, res, next) => {
         <p>Welcome to SugBox</p>
         <p>Your first digital suggestion app</p>
         <p>Click on the link below to verify your organization account.</p>
-        <a 
-          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;" 
+        <a
+          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;"
           href="${link}"
         >
           Verify Organization
@@ -51,7 +53,6 @@ export const companySignup = async (req, res, next) => {
       `,
     });
   } catch (err) {
-    // next(createError(404, 'problem creating account'))
     next(err);
   }
 };
@@ -79,8 +80,6 @@ export const verifyAccount = async (req, res, next) => {
     );
     res.status(200).json("Account verification successfull");
 
-    const baseUrl = process.env.BASE_URL;
-
     await sendMail({
       receiver: organization.companyEmail,
       subject: "Account Verification Successful",
@@ -88,8 +87,8 @@ export const verifyAccount = async (req, res, next) => {
         `
         <p>Hello ${organization.companyName},</p>
         <p>Your account has been successfully verified. Click on the link below to continue to login.</p>
-        <a 
-          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;" 
+        <a
+          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;"
           href=`(baseUrl) /
         login /
         admin`
@@ -162,7 +161,7 @@ export const employeeSignup = async (req, res, next) => {
     });
 
     const saveEmployee = await newEmployee.save();
-
+    console.log(saveEmployee);
     //Update Company Employee List
     await CompanyModel.findByIdAndUpdate(req.params.id, {
       $push: { employees: newEmployee._id },
@@ -189,22 +188,18 @@ export const employeeSignup = async (req, res, next) => {
     await sendMail({
       receiver: saveEmployee.email,
       subject: `Invitation to Suggbox from ${company.companyName}`,
-      message:
-        `
+      message: `
         <p>Hello ${saveEmployee.firstName},</p>
-        <p>You have been invited by ${company.companyName} to Suggbox. A digital suggestions app for organizations.</p>
-        <p style="display: block">Your password is <i style="color: blue; font: bold"> ${password}.</i></p> 
-        <p> Don't forget to reset your password after you have logged in.</p>
-        <p style="">Click on the link below to get started</p>
-        <p style="">Thanks.</p>
-
-        <a 
-          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;" 
-          href=`(process.env.BASE_URL) /
-        login /
-        employee`
+        <p>You have been invited by ${company.companyName} to Suggbox, a digital suggestions app for organizations.</p>
+        <p style="display: block">Your password is <i style="color: blue; font-weight: bold;">${password}</i>.</p>
+        <p>Don't forget to reset your password after you have logged in.</p>
+        <p>Click on the link below to get started:</p>
+        <p>Thanks.</p>
+        <a
+          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;"
+          href="${process.env.BASE_URL}/login/employee"
         >
-         Login
+          Login
         </a>
       `,
     });
@@ -359,8 +354,8 @@ export const forgotPassword = async (req, res, next) => {
       message: `
         <p>Hello ${employee.firstName},</p>
         <p>Click the link below to reset your password:</p>
-        <a 
-          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;" 
+        <a
+          style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;"
           href="${link}"
         >
           Reset Password
@@ -411,12 +406,12 @@ export const resetEmail = async (req, res, next) => {
 
     if (user[currentEmail] === email) {
       return res
-        .status(405)
+        .status(400)
         .json("You cannot reuse your current email. Enter a new one.");
     }
 
     if (verifyEmailDoesNotExist) {
-      return res.status(406).json("This email already exists, try a new one.");
+      return res.status(400).json("This email already exists, try a new one.");
     }
 
     await Model.findByIdAndUpdate(
