@@ -12,6 +12,14 @@ const baseUrl = process.env.BASE_URL;
 //Company Signup
 export const companySignup = async (req, res, next) => {
   try {
+    const { companyEmail } = req.body;
+    const verifyEmail = await CompanyModel.findOne({ email: companyEmail });
+    console.log(companyEmail, verifyEmail);
+    if (verifyEmail) {
+      return res
+        .status(501)
+        .json("Error, email already exists, try a new one.");
+    }
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(req.body.password, salt);
     const newCompany = new CompanyModel({ ...req.body, password: hash });
@@ -53,7 +61,11 @@ export const companySignup = async (req, res, next) => {
       `,
     });
   } catch (err) {
-    next(err);
+    // next(err);
+    console.log(err);
+    return res
+      .status(500)
+      .json("Error creating account. Check your network and try again.");
   }
 };
 
@@ -100,7 +112,12 @@ export const verifyAccount = async (req, res, next) => {
 
     await TokenModel.findByIdAndDelete(verifyToken._id);
   } catch (error) {
-    next(error);
+    console.log(error);
+    return res
+      .status(500)
+      .json(
+        "Organization account creation failed, check your network try again."
+      );
   }
 };
 
@@ -249,28 +266,36 @@ export const employeeLogin = async (req, res, next) => {
   }
 };
 
-//Reset Employee Password
+//Reset Password
 
-export const resetEmployeePassword = async (req, res, next) => {
+export const resetPassword = async (req, res, next) => {
   try {
     const { email } = req.params;
-    const { oldPassword, newPassword, action, token } = req.body;
+    const { oldPassword, newPassword } = req.body.formData;
+    const { action, token } = req.body;
+
+    console.log(oldPassword, newPassword, action, token);
 
     const employee = await EmployeeModel.findOne({ email });
-    if (!employee) {
-      return res.status(404).json("Employee does not exist.");
+    const organization = await CompanyModel.findOne({ email });
+    if (!employee && !organization) {
+      return res.status(404).json("This account does not exist.");
     }
+
+    const currentAccount = employee ? employee : organization;
+    const currentModel = employee ? EmployeeModel : CompanyModel;
 
     if (action === "resetPassword") {
       const isOldPasswordValid = await bcrypt.compare(
         oldPassword,
         employee.password
       );
+
       if (!isOldPasswordValid) {
         return res.status(401).json("Incorrect Old Password");
       }
     } else if (action === "forgotPassword") {
-      const getToken = await TokenModel.findOne({ userId: employee._id });
+      const getToken = await TokenModel.findOne({ userId: currentAccount._id });
       if (!getToken) {
         return res.status(404).json("No token found");
       }
@@ -289,16 +314,24 @@ export const resetEmployeePassword = async (req, res, next) => {
 
     const isNewPasswordUnique = await bcrypt.compare(
       newPassword,
-      employee.password
+      currentAccount.password
     );
+
     if (isNewPasswordUnique) {
-      return res.status(403).json("Old password and new password are the same");
+      return res
+        .status(403)
+        .json(
+          "Old password and new password are the same, use a new password."
+        );
     }
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(newPassword, salt);
-    await EmployeeModel.findOneAndUpdate(
-      { email },
+
+    const currentEmail = employee ? "email" : "companyEmail";
+
+    await currentModel.findOneAndUpdate(
+      { [currentEmail]: email },
       { $set: { password: hash } },
       { new: true }
     );
@@ -306,15 +339,15 @@ export const resetEmployeePassword = async (req, res, next) => {
     res.status(200).json("Password Updated Successfully");
 
     sendMail({
-      receiver: employee.email,
+      receiver: employee ? employee.email : organization.email,
       subject: "Password Reset Successful",
       message: "Your password has been successfully reset",
     });
 
-    await TokenModel.findOneAndDelete({ userId: employee._id });
+    await TokenModel.findOneAndDelete({ userId: currentAccount._id });
   } catch (error) {
     console.error(error);
-    next(error);
+    res.status(500).json("Password reset failed. Please try again.");
   }
 };
 
@@ -322,13 +355,21 @@ export const resetEmployeePassword = async (req, res, next) => {
 
 export const forgotPassword = async (req, res, next) => {
   try {
-    const employee = await EmployeeModel.findOne({ email: req.params.email });
-    if (!employee) {
-      return res.status(404).json("Employee does not exist");
+    const { email } = req.params;
+
+    const employee = await EmployeeModel.findOne({ email: email });
+    const organization = await CompanyModel.findOne({ companyEmail: email });
+
+    if (!employee && !organization) {
+      return res.status(404).json("This account does not exist.");
     }
+
+    const currentAccount = employee !== null ? employee : organization;
+
     const existingToken = await TokenModel.findOne({
-      userId: employee._id.toString(),
+      userId: currentAccount._id.toString(),
     });
+
     if (existingToken) {
       console.log("TOKEN", existingToken);
       await TokenModel.findByIdAndDelete(existingToken._id);
@@ -341,18 +382,20 @@ export const forgotPassword = async (req, res, next) => {
 
     await new TokenModel({
       token: hash,
-      userId: employee._id,
+      userId: currentAccount._id,
       createdAt: new Date().getTime(),
       expireAt: new Date().getTime() + 30 * 60 * 1000,
     }).save();
 
-    const link = `${process.env.BASE_URL}/change-password/${newToken}/${employee._id}`;
+    const link = `${process.env.BASE_URL}/change-password/${newToken}/${currentAccount._id}`;
 
     await sendMail({
       receiver: "nkematu5@gmail.com",
       subject: "Password Reset",
       message: `
-        <p>Hello ${employee.firstName},</p>
+        <p>Hello ${
+          employee === null ? organization.companyName : employee.firstName
+        },</p>
         <p>Click the link below to reset your password:</p>
         <a
           style="background: green; color: white; padding: 4px; border-radius: 10px; text-decoration: none;"
@@ -365,7 +408,8 @@ export const forgotPassword = async (req, res, next) => {
 
     res.status(200).json("Password reset link sent successfully.");
   } catch (error) {
-    next(error);
+    console.log(error);
+    return res.status(500).json("Error, Check your internet and try again");
   }
 };
 

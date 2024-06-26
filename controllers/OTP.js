@@ -7,17 +7,14 @@ import { sendMail } from "../utils/sendEmail.js";
 
 export const generateOTP = async (req, res, next) => {
   try {
-    const { isAdmin, action } = req.body;
+    const { action } = req.body;
     const { id } = req.params;
 
     const employee = await EmployeeModel.findById(id);
     const organization = await CompanyModel.findById(id);
 
-    if (!isAdmin && !employee) {
-      return res.status(404).json("Employee doesn't exist.");
-    }
-    if (isAdmin && !organization) {
-      return res.status(404).json("Organization doesn't exist.");
+    if (!employee && !organization) {
+      return res.status(404).json("Account not found.");
     }
 
     const verifyExistingOTPs = await OTPModel.find({ userId: req.params.id });
@@ -36,10 +33,10 @@ export const generateOTP = async (req, res, next) => {
     const saveOTP = await OTP.save();
 
     await sendMail({
-      receiver: isAdmin ? organization.companyEmail : employee.email,
+      receiver: organization ? organization.companyEmail : employee.email,
       subject: "Authentication OTP",
       message: `Hello ${
-        isAdmin ? organization.companyName : employee.firstName
+        organization ? organization.companyName : employee.firstName
       }, use this OTP to ${action}. <span style="background: green; color: white; padding; 4px; border-radius: 10px"> ${newOTP}`,
     });
 

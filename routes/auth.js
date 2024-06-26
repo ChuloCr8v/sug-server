@@ -6,7 +6,7 @@ import {
   employeeSignup,
   forgotPassword,
   resetEmail,
-  resetEmployeePassword,
+  resetPassword,
   verifyEmployeePasswordMatch,
   verifyAccount,
 } from "../controllers/auth.js";
@@ -19,7 +19,7 @@ router.post("/auth/organization/new", companySignup);
 router.post("/auth/employee/new/:id", verifyAdminToken, employeeSignup);
 router.put("/auth/company/login-company", companyLogin);
 router.put("/auth/employee/login-employee", employeeLogin);
-router.put("/auth/employee/reset-password/:email", resetEmployeePassword);
+router.put("/auth/reset-password/:email", resetPassword);
 router.put(
   "/auth/employee/verifyOldPassword/:id",
   verifyEmployeeToken,
