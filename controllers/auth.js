@@ -13,13 +13,21 @@ const baseUrl = process.env.BASE_URL;
 export const companySignup = async (req, res, next) => {
   try {
     const { companyEmail } = req.body;
-    const verifyEmail = await CompanyModel.findOne({ email: companyEmail });
-    console.log(companyEmail, verifyEmail);
-    if (verifyEmail) {
+
+    const verifyExstingOrganizationEmail = await CompanyModel.findOne({
+      email: companyEmail,
+    });
+
+    const verifyExistingEmployeeEmail = await EmployeeModel.findOne({
+      email: companyEmail,
+    });
+
+    if (verifyExstingOrganizationEmail || verifyExistingEmployeeEmail) {
       return res
         .status(501)
         .json("Error, email already exists, try a new one.");
     }
+
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(req.body.password, salt);
     const newCompany = new CompanyModel({ ...req.body, password: hash });
@@ -161,10 +169,24 @@ export const companyLogin = async (req, res, next) => {
 
 //Employee Signup
 export const employeeSignup = async (req, res, next) => {
+  console.log(req.body);
+  const { email } = req.body;
   const company = await CompanyModel.findById(req.params.id);
 
   if (req.params.id !== req.user)
     return res.status(401).json("You are not authorized!");
+
+  const verifyExstingOrganizationEmail = await CompanyModel.findOne({
+    companyEmail: email,
+  });
+
+  const verifyExistingEmployeeEmail = await EmployeeModel.findOne({
+    email: email,
+  });
+
+  if (verifyExstingOrganizationEmail || verifyExistingEmployeeEmail) {
+    return res.status(501).json("Error, email already exists, try a new one.");
+  }
 
   const password = crypto.randomBytes(8).toString("hex");
 
@@ -274,10 +296,10 @@ export const resetPassword = async (req, res, next) => {
     const { oldPassword, newPassword } = req.body.formData;
     const { action, token } = req.body;
 
-    console.log(oldPassword, newPassword, action, token);
+    console.log(oldPassword, newPassword, action, token, email);
 
-    const employee = await EmployeeModel.findOne({ email });
-    const organization = await CompanyModel.findOne({ email });
+    const employee = await EmployeeModel.findOne({ email: email });
+    const organization = await CompanyModel.findOne({ companyEmail: email });
     if (!employee && !organization) {
       return res.status(404).json("This account does not exist.");
     }
@@ -288,7 +310,7 @@ export const resetPassword = async (req, res, next) => {
     if (action === "resetPassword") {
       const isOldPasswordValid = await bcrypt.compare(
         oldPassword,
-        employee.password
+        currentAccount.password
       );
 
       if (!isOldPasswordValid) {
@@ -339,7 +361,7 @@ export const resetPassword = async (req, res, next) => {
     res.status(200).json("Password Updated Successfully");
 
     sendMail({
-      receiver: employee ? employee.email : organization.email,
+      receiver: employee ? employee.email : organization.companyEmail,
       subject: "Password Reset Successful",
       message: "Your password has been successfully reset",
     });
