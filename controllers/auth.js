@@ -15,7 +15,7 @@ export const companySignup = async (req, res, next) => {
     const { companyEmail } = req.body;
 
     const verifyExstingOrganizationEmail = await CompanyModel.findOne({
-      email: companyEmail,
+      companyEmail: companyEmail,
     });
 
     const verifyExistingEmployeeEmail = await EmployeeModel.findOne({
