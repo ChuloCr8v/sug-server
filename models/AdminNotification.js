@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const AdminNotificationSchema = new mongoose.Schema({
-  newEmployeeIvited: {
+  newEmployeeInvited: {
     type: Boolean,
     default: true,
   },
