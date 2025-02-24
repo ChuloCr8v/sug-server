@@ -1,9 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
 
-// const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
-// const api_key = process.env.CLOUDINARY_API_KEY;
-// const api_secret = process.env.CLOUDINARY_API_SECRET;
-
 export const cloudinaryProps = cloudinary.config({
   cloud_name: "dzcave05f",
   api_key: "378393764147723",
